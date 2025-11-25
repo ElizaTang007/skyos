@@ -949,7 +949,49 @@ class _AirHubPageState extends State<AirHubPage> {
   List<Map<String, dynamic>> get _allServices => ScenarioMarketPage.allScenarios;
   
   List<Map<String, dynamic>> get _featuredServices {
-    return _allServices.where((Map<String, dynamic> s) => s["page"] != null).take(4).toList();
+    // 精选推荐：固定4个功能
+    return <Map<String, dynamic>>[
+      <String, dynamic>{
+        "title": "空中仪式",
+        "description": "专属定制您的梦幻时刻",
+        "detailDescription": "云端求婚、空中婚礼、纪念日庆祝",
+        "icon": Icons.favorite,
+        "color": Colors.pink,
+        "rating": 4.9,
+        "users": 10000,
+        "page": WeddingPage(),
+      },
+      <String, dynamic>{
+        "title": "极速空投",
+        "description": "5分钟,好物直达阳台",
+        "detailDescription": "5分钟,好物直达阳台",
+        "icon": Icons.flight_takeoff,
+        "color": Colors.orange,
+        "rating": 4.8,
+        "users": 8500,
+        "page": DeliveryPage(),
+      },
+      <String, dynamic>{
+        "title": "医疗专线",
+        "description": "紧急情况优先通道",
+        "detailDescription": "紧急情况优先通道",
+        "icon": Icons.local_hospital,
+        "color": Colors.red,
+        "rating": 5.0,
+        "users": 12000,
+        "page": MedicalPage(),
+      },
+      <String, dynamic>{
+        "title": "空域叫车",
+        "description": "一键叫车，快速出行",
+        "detailDescription": "一键叫车，快速出行",
+        "icon": Icons.airplanemode_active,
+        "color": Colors.cyan,
+        "rating": 4.7,
+        "users": 15000,
+        "page": null, // 跳转到空域页面
+      },
+    ];
   }
 
   Map<String, List<Map<String, dynamic>>> get _servicesByCategory {
