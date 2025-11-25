@@ -1009,7 +1009,7 @@ class _AirHubPageState extends State<AirHubPage> {
             ),
             const SizedBox(height: 15),
             SizedBox(
-              height: 200,
+              height: 220,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1069,6 +1069,7 @@ class _AirHubPageState extends State<AirHubPage> {
     final int users = scenario["users"] as int;
     final String description = scenario["description"] as String;
     final String title = scenario["title"] as String;
+    final String detailDescription = scenario["detailDescription"] as String? ?? description;
 
     return GestureDetector(
       onTap: () {
@@ -1093,25 +1094,38 @@ class _AirHubPageState extends State<AirHubPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            // 第一行：左侧图标，右上角描述文字
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Icon(scenario["icon"] as IconData, color: Colors.white, size: 32),
+                Icon(scenario["icon"] as IconData, color: Colors.white, size: 40),
                 const Spacer(),
-                Row(
-                  children: <Widget>[
-                    const Icon(Icons.star, color: Colors.amber, size: 16),
-                    const SizedBox(width: 4),
-                    Text("$rating", style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 8),
-                    Text("${(users / 1000).toStringAsFixed(0)}K+用户", style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 12)),
-                  ],
+                Expanded(
+                  child: Text(
+                    description,
+                    style: TextStyle(color: Colors.white.withOpacity(0.95), fontSize: 13),
+                    textAlign: TextAlign.right,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 20),
-            Text(description, style: TextStyle(color: Colors.white.withOpacity(0.95), fontSize: 14)),
-            const SizedBox(height: 15),
-            Text(title, style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold)),
+            // 大标题
+            Text(title, style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            // 详细描述
+            Text(detailDescription, style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13)),
+            const Spacer(),
+            // 左下角评分和用户数
+            Row(
+              children: <Widget>[
+                const Icon(Icons.star, color: Colors.amber, size: 18),
+                const SizedBox(width: 5),
+                Text("$rating", style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                const SizedBox(width: 10),
+                Text("${(users / 1000).toStringAsFixed(0)}K+用户", style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13)),
+              ],
+            ),
           ],
         ),
       ),
