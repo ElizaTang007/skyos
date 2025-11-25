@@ -114,77 +114,205 @@ class SkyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E21),
-      appBar: AppBar(
-        title: const Text('天空操作系统', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            // 顶部欢迎区域
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+              child: Row(
+                children: <Widget>[
+                  const CircleAvatar(
+                    radius: 25,
+                    backgroundColor: Colors.cyan,
+                    child: Icon(Icons.person, color: Colors.white),
+                  ),
+                  const SizedBox(width: 15),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text('你好, Alex', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                        SizedBox(height: 4),
+                        Text('今日宜飞行·能见度极佳', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.notifications_none, color: Colors.white),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            ),
+            // 快捷通勤大卡片
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                height: 180,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: <Color>[Colors.blue.shade600, Colors.cyan.shade700],
+                  ),
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Stack(
+                  children: <Widget>[
+                    Positioned(
+                      right: -30,
+                      top: -20,
+                      child: Opacity(
+                        opacity: 0.3,
+                        child: Icon(Icons.airplanemode_active, size: 200, color: Colors.white),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(25),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          const Text('快捷通勤', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 10),
+                          const Text('准备好回家了吗?', style: TextStyle(color: Colors.white, fontSize: 18)),
+                          const Spacer(),
+                          Align(
+                            alignment: Alignment.bottomLeft,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                Provider.of<MainNavigationData>(context, listen: false).updateIndex(1);
+                              },
+                              icon: const Icon(Icons.airplanemode_active, color: Colors.white),
+                              label: const Text('一键叫车', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.cyan.shade400,
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
+            // 探索空中生活
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  const Text('你好，Alex', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  const Text('探索空中生活', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                  const Text('探索空中生活', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 5),
+                  const Text('无限场景,一触即达', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    height: 160,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: 5,
+                      itemBuilder: (BuildContext context, int index) {
+                        final List<Map<String, dynamic>> scenarios = <Map<String, dynamic>>[
+                          <String, dynamic>{
+                            'title': '空中仪式',
+                            'subtitle': '专属定制您的梦幻时刻',
+                            'icon': Icons.favorite,
+                            'color': Colors.pink,
+                            'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const WeddingPage())),
+                          },
+                          <String, dynamic>{
+                            'title': '极速空投',
+                            'subtitle': '5分钟,好物直达阳台',
+                            'icon': Icons.flight_takeoff,
+                            'color': Colors.orange,
+                            'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const DeliveryPage())),
+                          },
+                          <String, dynamic>{
+                            'title': '医疗专线',
+                            'subtitle': '紧急情况优先通道',
+                            'icon': Icons.local_hospital,
+                            'color': Colors.red,
+                            'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MedicalPage())),
+                          },
+                          <String, dynamic>{
+                            'title': '空域叫车',
+                            'subtitle': '一键叫车，快速出行',
+                            'icon': Icons.airplanemode_active,
+                            'color': Colors.cyan,
+                            'onTap': () => Provider.of<MainNavigationData>(context, listen: false).updateIndex(1),
+                          },
+                          <String, dynamic>{
+                            'title': '更多场景',
+                            'subtitle': '探索更多服务',
+                            'icon': Icons.apps,
+                            'color': Colors.purple,
+                            'onTap': () => Provider.of<MainNavigationData>(context, listen: false).updateIndex(2),
+                          },
+                        ];
+                        final Map<String, dynamic> scenario = scenarios[index];
+                        return _HorizontalScenarioCard(
+                          title: scenario['title'] as String,
+                          subtitle: scenario['subtitle'] as String,
+                          icon: scenario['icon'] as IconData,
+                          accentColor: scenario['color'] as Color,
+                          onTap: scenario['onTap'] as VoidCallback,
+                        );
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 15,
-                crossAxisSpacing: 15,
-                childAspectRatio: 1.2,
-                children: <Widget>[
-                  _ScenarioCard(
-                    title: '空域叫车',
-                    subtitle: '一键叫车',
-                    icon: Icons.airplanemode_active,
-                    accentColor: Colors.cyan,
-                    onTap: () {
-                      Provider.of<MainNavigationData>(context, listen: false).updateIndex(1);
-                    },
-                  ),
-                  _ScenarioCard(
-                    title: '空中仪式',
-                    subtitle: '定制婚礼',
-                    icon: Icons.favorite,
-                    accentColor: Colors.pink,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const WeddingPage())),
-                  ),
-                  _ScenarioCard(
-                    title: '医疗专线',
-                    subtitle: '紧急救援',
-                    icon: Icons.local_hospital,
-                    accentColor: Colors.red,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MedicalPage())),
-                  ),
-                  _ScenarioCard(
-                    title: '极速空投',
-                    subtitle: '快速配送',
-                    icon: Icons.flight_takeoff,
-                    accentColor: Colors.orange,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const DeliveryPage())),
-                  ),
-                  _ScenarioCard(
-                    title: '更多场景',
-                    subtitle: '探索更多',
-                    icon: Icons.apps,
-                    accentColor: Colors.purple,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ScenarioMarketPage())),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HorizontalScenarioCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color accentColor;
+  final VoidCallback onTap;
+
+  const _HorizontalScenarioCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.accentColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 140,
+        margin: const EdgeInsets.only(right: 15),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Icon(icon, color: accentColor, size: 32),
+            const SizedBox(height: 15),
+            Text(title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 5),
+            Text(subtitle, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
           ],
         ),
       ),
@@ -507,6 +635,7 @@ class _AirHubPageState extends State<AirHubPage> {
             ),
             const SizedBox(height: 30),
             ..._servicesByCategory.entries.map((MapEntry<String, List<Map<String, dynamic>>> entry) {
+              final IconData categoryIcon = _getCategoryIcon(entry.key);
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
@@ -514,6 +643,8 @@ class _AirHubPageState extends State<AirHubPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
                       children: <Widget>[
+                        Icon(categoryIcon, color: const Color(0xFF00E5FF), size: 20),
+                        const SizedBox(width: 8),
                         Text(entry.key, style: const TextStyle(color: Color(0xFF00E5FF), fontSize: 20, fontWeight: FontWeight.bold)),
                         const Spacer(),
                         GestureDetector(
@@ -550,6 +681,7 @@ class _AirHubPageState extends State<AirHubPage> {
     final Widget? page = scenario["page"] as Widget?;
     final double rating = 4.5 + (scenario.hashCode % 10) / 10;
     final int users = 1000 + (scenario.hashCode % 5000);
+    final String description = scenario["description"] as String? ?? scenario["subtitle"] as String;
 
     return GestureDetector(
       onTap: () {
@@ -558,36 +690,40 @@ class _AirHubPageState extends State<AirHubPage> {
         }
       },
       child: Container(
-        width: 280,
+        width: 300,
         margin: const EdgeInsets.only(right: 15),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: <Color>[color.withOpacity(0.6), color.withOpacity(0.3)],
+            colors: <Color>[color.withOpacity(0.7), color.withOpacity(0.4)],
           ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.5), width: 2),
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(color: color.withOpacity(0.6), width: 2),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(25),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Icon(scenario["icon"] as IconData, color: Colors.white, size: 40),
-            const SizedBox(height: 15),
-            Text(scenario["title"] as String, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text(scenario["subtitle"] as String, style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14)),
-            const Spacer(),
             Row(
               children: <Widget>[
-                const Icon(Icons.star, color: Colors.amber, size: 16),
-                const SizedBox(width: 5),
-                Text("$rating", style: const TextStyle(color: Colors.white, fontSize: 14)),
-                const SizedBox(width: 15),
-                Text("$users 用户", style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12)),
+                Icon(scenario["icon"] as IconData, color: Colors.white, size: 32),
+                const Spacer(),
+                Row(
+                  children: <Widget>[
+                    const Icon(Icons.star, color: Colors.amber, size: 16),
+                    const SizedBox(width: 4),
+                    Text("$rating", style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 8),
+                    Text("${(users / 1000).toStringAsFixed(0)}K+用户", style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12)),
+                  ],
+                ),
               ],
             ),
+            const SizedBox(height: 20),
+            Text(description, style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13)),
+            const SizedBox(height: 15),
+            Text(scenario["title"] as String, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
@@ -597,6 +733,7 @@ class _AirHubPageState extends State<AirHubPage> {
   Widget _buildServiceCard(Map<String, dynamic> scenario) {
     final Color color = scenario["color"] as Color;
     final Widget? page = scenario["page"] as Widget?;
+    final String subtitle = scenario["subtitle"] as String;
 
     return GestureDetector(
       onTap: () {
@@ -607,27 +744,30 @@ class _AirHubPageState extends State<AirHubPage> {
         }
       },
       child: Container(
-        width: 120,
+        width: 140,
         margin: const EdgeInsets.only(right: 15),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: <Color>[color.withOpacity(0.3), color.withOpacity(0.1)],
-          ),
+          color: Colors.white.withOpacity(0.08),
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: color.withOpacity(0.5), width: 1.5),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
         ),
         padding: const EdgeInsets.all(15),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Icon(scenario["icon"] as IconData, color: color, size: 32),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Text(
               scenario["title"] as String,
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 11),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -635,6 +775,27 @@ class _AirHubPageState extends State<AirHubPage> {
         ),
       ),
     );
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case '生活服务':
+        return Icons.home;
+      case '物流配送':
+        return Icons.local_shipping;
+      case '紧急服务':
+        return Icons.warning;
+      case '工业服务':
+        return Icons.factory;
+      case '农业服务':
+        return Icons.agriculture;
+      case '旅游服务':
+        return Icons.flight;
+      case '娱乐服务':
+        return Icons.sports_esports;
+      default:
+        return Icons.category;
+    }
   }
 }
 
@@ -749,10 +910,17 @@ class MyProfilePage extends StatelessWidget {
         title: const Text('我的', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
+            // 用户信息卡片
             Container(
               padding: const EdgeInsets.all(30),
               decoration: BoxDecoration(
@@ -776,35 +944,112 @@ class MyProfilePage extends StatelessWidget {
                       children: <Widget>[
                         Text('用户', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
                         SizedBox(height: 5),
-                        Text('高级用户', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                        Text('高级用户·天空探索者', style: TextStyle(color: Colors.white70, fontSize: 14)),
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.white),
+                  ElevatedButton.icon(
                     onPressed: () {},
+                    icon: const Icon(Icons.edit, color: Colors.white, size: 16),
+                    label: const Text('编辑资料', style: TextStyle(color: Colors.white, fontSize: 14)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.cyan,
+                      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
                   ),
                 ],
               ),
             ),
-            _buildMenuItem(context, Icons.history, '我的行程', () {}),
-            _buildMenuItem(context, Icons.payment, '支付方式', () {}),
-            _buildMenuItem(context, Icons.card_giftcard, '我的优惠券', () {}),
-            _buildMenuItem(context, Icons.notifications, '通知设置', () {}),
-            _buildMenuItem(context, Icons.help_outline, '帮助与反馈', () {}),
-            _buildMenuItem(context, Icons.info_outline, '关于我们', () {}),
+            const SizedBox(height: 20),
+            // 常用功能
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('常用功能', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(height: 10),
+            _buildFunctionCard(context, Icons.history, '我的行程', '查看历史订单和即将到来的行程', () {}),
+            _buildFunctionCard(context, Icons.payment, '支付方式', '管理您的支付卡和钱包', () {}),
+            _buildFunctionCard(context, Icons.card_giftcard, '我的优惠券', '查看可用优惠券和兑换码', () {}),
+            const SizedBox(height: 20),
+            // 更多服务
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('更多服务', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(height: 10),
+            _buildFunctionCard(context, Icons.help_outline, '帮助与反馈', '寻求帮助或提交您的宝贵建议', () {}),
+            _buildFunctionCard(context, Icons.info_outline, '关于我们', '了解天空操作系统的故事和使命', () {}),
+            const SizedBox(height: 30),
+            // 安全退出
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  ),
+                  child: const Text('安全退出', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, IconData icon, String title, VoidCallback onTap) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.cyan),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
-      trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
-      onTap: onTap,
+  Widget _buildFunctionCard(BuildContext context, IconData icon, String title, String subtitle, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
+          ),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.cyan.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: Colors.cyan, size: 24),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text(subtitle, style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 12)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
