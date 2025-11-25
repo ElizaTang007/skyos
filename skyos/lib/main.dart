@@ -1710,12 +1710,52 @@ class MedicalPage extends StatefulWidget {
   State<MedicalPage> createState() => _MedicalPageState();
 }
 
-class _MedicalPageState extends State<MedicalPage> {
+class _MedicalPageState extends State<MedicalPage> with TickerProviderStateMixin {
   String? _selectedEmergencyType;
   String? _selectedLocation;
+  String? _patientName;
+  String? _patientAge;
+  String? _patientPhone;
+  String? _emergencyContact;
+  String? _emergencyPhone;
+  String? _symptoms;
+  int _rescueStatus = 0; // 0-待呼叫, 1-已呼叫, 2-救援中, 3-已到达
+  String? _rescueId;
+  String? _ambulanceId;
+  int _estimatedTime = 0;
+  late AnimationController _pulseController;
+  late AnimationController _countdownController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+    _countdownController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    _countdownController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_rescueStatus == 0) {
+      return _buildCallForm();
+    } else {
+      return _buildRescueTracking();
+    }
+  }
+
+  Widget _buildCallForm() {
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E21),
       appBar: AppBar(
@@ -1779,27 +1819,63 @@ class _MedicalPageState extends State<MedicalPage> {
               }).toList(),
             ),
             const SizedBox(height: 30),
-            const Text('当前位置', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 15),
-            Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: Colors.white.withOpacity(0.2)),
+            GestureDetector(
+              onTap: () => _showLocationPicker(),
+              child: Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    const Icon(Icons.location_on, color: Colors.red, size: 24),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: Text(_selectedLocation ?? '选择位置', style: TextStyle(color: _selectedLocation == null ? Colors.white70 : Colors.white, fontSize: 16)),
+                    ),
+                    const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+                  ],
+                ),
               ),
-              child: Row(
-                children: <Widget>[
-                  const Icon(Icons.location_on, color: Colors.red, size: 24),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: Text(_selectedLocation ?? '选择位置', style: TextStyle(color: _selectedLocation == null ? Colors.white70 : Colors.white, fontSize: 16)),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
-                    onPressed: () {},
-                  ),
-                ],
+            ),
+            const SizedBox(height: 30),
+            const Text('患者信息', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 15),
+            _buildInfoInputCard('患者姓名', _patientName ?? '输入患者姓名', Icons.person),
+            const SizedBox(height: 15),
+            _buildInfoInputCard('患者年龄', _patientAge ?? '输入患者年龄', Icons.calendar_today),
+            const SizedBox(height: 15),
+            _buildInfoInputCard('联系电话', _patientPhone ?? '输入联系电话', Icons.phone),
+            const SizedBox(height: 30),
+            const Text('紧急联系人', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 15),
+            _buildInfoInputCard('联系人姓名', _emergencyContact ?? '输入联系人姓名', Icons.contact_phone),
+            const SizedBox(height: 15),
+            _buildInfoInputCard('联系人电话', _emergencyPhone ?? '输入联系人电话', Icons.phone_android),
+            const SizedBox(height: 30),
+            const Text('症状描述', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 15),
+            GestureDetector(
+              onTap: () => _showSymptomsDialog(),
+              child: Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    const Icon(Icons.description, color: Colors.red, size: 24),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: Text(_symptoms ?? '描述患者症状', style: TextStyle(color: _symptoms == null ? Colors.white70 : Colors.white, fontSize: 16)),
+                    ),
+                    const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 30),
@@ -1807,10 +1883,11 @@ class _MedicalPageState extends State<MedicalPage> {
               width: double.infinity,
               height: 60,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: _canCallRescue() ? _callRescue : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                 ),
                 child: const Text('立即呼叫救援', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -1821,6 +1898,449 @@ class _MedicalPageState extends State<MedicalPage> {
       ),
     );
   }
+
+  Widget _buildRescueTracking() {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0A0E21),
+      appBar: AppBar(
+        title: const Text('救援追踪', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            // 救援状态卡片
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: <Color>[Colors.red.withOpacity(0.3), Colors.orange.withOpacity(0.2)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.red.withOpacity(0.5), width: 1.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (BuildContext context, Widget? child) {
+                          return Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.7 - _pulseController.value * 0.3),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.red, width: 2),
+                            ),
+                            child: const Icon(Icons.local_hospital, color: Colors.white, size: 28),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              _getRescueStatusText(),
+                              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            if (_rescueId != null)
+                              Text(
+                                '救援编号: $_rescueId',
+                                style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
+                              ),
+                            if (_estimatedTime > 0)
+                              Text(
+                                '预计到达: ${_estimatedTime}分钟',
+                                style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  _buildTrackingInfoRow('紧急类型', _selectedEmergencyType ?? '', Icons.warning),
+                  const SizedBox(height: 10),
+                  _buildTrackingInfoRow('救援位置', _selectedLocation ?? '', Icons.location_on),
+                  if (_ambulanceId != null) ...[
+                    const SizedBox(height: 10),
+                    _buildTrackingInfoRow('医疗飞行器', _ambulanceId!, Icons.airplanemode_active),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 30),
+            // 救援进度
+            const Text('救援进度', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 15),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
+              ),
+              child: Column(
+                children: <Widget>[
+                  _buildProgressStep('救援已呼叫', 1),
+                  _buildProgressStep('医疗飞行器出发', 2),
+                  _buildProgressStep('正在前往', 3),
+                  _buildProgressStep('已到达现场', 4),
+                ],
+              ),
+            ),
+            const SizedBox(height: 30),
+            // 实时地图（模拟）
+            Container(
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
+              ),
+              child: Stack(
+                children: <Widget>[
+                  Center(
+                    child: Icon(Icons.map, color: Colors.white.withOpacity(0.3), size: 60),
+                  ),
+                  if (_rescueStatus >= 2)
+                    Center(
+                      child: AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (BuildContext context, Widget? child) {
+                          return Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.7 - _pulseController.value * 0.3),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.red, width: 2),
+                            ),
+                            child: const Icon(Icons.airplanemode_active, color: Colors.white, size: 20),
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    ),
+                    child: const Text('联系医疗队', style: TextStyle(fontSize: 16)),
+                  ),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    ),
+                    child: const Text('紧急取消', style: TextStyle(fontSize: 16)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoInputCard(String title, String hint, IconData icon) {
+    return GestureDetector(
+      onTap: () => _showInputDialog(title, icon),
+      child: Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: Colors.white.withOpacity(0.2)),
+        ),
+        child: Row(
+          children: <Widget>[
+            Icon(icon, color: Colors.red, size: 24),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 5),
+                  Text(hint, style: TextStyle(color: hint.contains('输入') ? Colors.white.withOpacity(0.7) : Colors.white, fontSize: 14)),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTrackingInfoRow(String label, String value, IconData icon) {
+    return Row(
+      children: <Widget>[
+        Icon(icon, color: Colors.red, size: 20),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text('$label: $value', style: const TextStyle(color: Colors.white, fontSize: 14)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProgressStep(String label, int step) {
+    final bool isCompleted = _rescueStatus >= step;
+    final bool isCurrent = _rescueStatus == step;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: isCompleted ? Colors.red : Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: isCompleted
+                ? const Icon(Icons.check, color: Colors.white, size: 20)
+                : isCurrent
+                    ? const Icon(Icons.radio_button_checked, color: Colors.red, size: 20)
+                    : const Icon(Icons.radio_button_unchecked, color: Colors.white54, size: 20),
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isCompleted || isCurrent ? Colors.white : Colors.white.withOpacity(0.6),
+                fontSize: 16,
+                fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getRescueStatusText() {
+    switch (_rescueStatus) {
+      case 1:
+        return '救援已呼叫';
+      case 2:
+        return '医疗飞行器出发';
+      case 3:
+        return '正在前往';
+      case 4:
+        return '已到达现场';
+      default:
+        return '待处理';
+    }
+  }
+
+  bool _canCallRescue() {
+    return _selectedEmergencyType != null &&
+        _selectedLocation != null &&
+        _patientName != null &&
+        _patientPhone != null;
+  }
+
+  void _showLocationPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Text('选择救援位置', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              ...<String>['城市之巅起降场 W1', '星海湾酒店顶楼', '科技园区起降场 E3', '市中心广场起降场'].map((String address) {
+                return ListTile(
+                  leading: const Icon(Icons.location_on, color: Colors.red),
+                  title: Text(address, style: const TextStyle(color: Colors.white)),
+                  onTap: () {
+                    setState(() {
+                      _selectedLocation = address;
+                    });
+                    Navigator.pop(context);
+                  },
+                );
+              }).toList(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showInputDialog(String title, IconData icon) {
+    final TextEditingController controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1A1A2E),
+          title: Row(
+            children: <Widget>[
+              Icon(icon, color: Colors.red),
+              const SizedBox(width: 10),
+              Text(title, style: const TextStyle(color: Colors.white)),
+            ],
+          ),
+          content: TextField(
+            controller: controller,
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
+              labelText: '请输入',
+              labelStyle: TextStyle(color: Colors.white70),
+              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white30)),
+              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.red)),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消', style: TextStyle(color: Colors.white70)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  switch (title) {
+                    case '患者姓名':
+                      _patientName = controller.text;
+                      break;
+                    case '患者年龄':
+                      _patientAge = controller.text;
+                      break;
+                    case '联系电话':
+                      _patientPhone = controller.text;
+                      break;
+                    case '联系人姓名':
+                      _emergencyContact = controller.text;
+                      break;
+                    case '联系人电话':
+                      _emergencyPhone = controller.text;
+                      break;
+                  }
+                });
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('确认'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSymptomsDialog() {
+    final TextEditingController controller = TextEditingController(text: _symptoms);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1A1A2E),
+          title: const Text('症状描述', style: TextStyle(color: Colors.white)),
+          content: TextField(
+            controller: controller,
+            style: const TextStyle(color: Colors.white),
+            maxLines: 5,
+            decoration: const InputDecoration(
+              labelText: '请详细描述患者症状',
+              labelStyle: TextStyle(color: Colors.white70),
+              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white30)),
+              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.red)),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消', style: TextStyle(color: Colors.white70)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _symptoms = controller.text;
+                });
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('确认'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _callRescue() {
+    setState(() {
+      _rescueStatus = 1;
+      _rescueId = 'MED${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+      _ambulanceId = 'AMB-${(1000 + (DateTime.now().millisecond % 9000)).toString()}';
+      _estimatedTime = 8;
+    });
+    // 模拟救援进度
+    Future<void>.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _rescueStatus = 2;
+          _estimatedTime = 6;
+        });
+      }
+    });
+    Future<void>.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _rescueStatus = 3;
+          _estimatedTime = 3;
+        });
+      }
+    });
+    Future<void>.delayed(const Duration(seconds: 10), () {
+      if (mounted) {
+        setState(() {
+          _rescueStatus = 4;
+          _estimatedTime = 0;
+        });
+      }
+    });
+  }
 }
 
 // --- 7. 极速空投页面 ---
@@ -1830,9 +2350,43 @@ class DeliveryPage extends StatefulWidget {
   State<DeliveryPage> createState() => _DeliveryPageState();
 }
 
-class _DeliveryPageState extends State<DeliveryPage> {
+class _DeliveryPageState extends State<DeliveryPage> with TickerProviderStateMixin {
+  String? _pickupAddress;
+  String? _deliveryAddress;
+  String? _itemDescription;
+  double _itemWeight = 1.0;
+  String? _itemValue;
+  int _orderStatus = 0; // 0-待下单, 1-已下单, 2-取件中, 3-运输中, 4-已送达
+  String? _orderId;
+  String? _vehicleId;
+  double _progress = 0.0;
+  late AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_orderStatus == 0) {
+      return _buildOrderForm();
+    } else {
+      return _buildTrackingView();
+    }
+  }
+
+  Widget _buildOrderForm() {
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E21),
       appBar: AppBar(
@@ -1876,23 +2430,198 @@ class _DeliveryPageState extends State<DeliveryPage> {
               ),
             ),
             const SizedBox(height: 30),
-            _buildInputCard('取件地址', '选择取件地点', Icons.location_on),
+            GestureDetector(
+              onTap: () => _showLocationPicker(true),
+              child: _buildInputCard('取件地址', _pickupAddress ?? '选择取件地点', Icons.location_on),
+            ),
             const SizedBox(height: 15),
-            _buildInputCard('送达地址', '选择送达地点', Icons.flag),
+            GestureDetector(
+              onTap: () => _showLocationPicker(false),
+              child: _buildInputCard('送达地址', _deliveryAddress ?? '选择送达地点', Icons.flag),
+            ),
             const SizedBox(height: 15),
-            _buildInputCard('物品信息', '输入物品描述和重量', Icons.inventory),
+            GestureDetector(
+              onTap: () => _showItemInfoDialog(),
+              child: _buildInputCard('物品信息', _itemDescription ?? '输入物品描述和重量', Icons.inventory),
+            ),
+            if (_itemDescription != null) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    const Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        '重量: ${_itemWeight.toStringAsFixed(1)}kg${_itemValue != null ? " | 价值: ¥$_itemValue" : ""}',
+                        style: const TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 30),
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: _pickupAddress != null && _deliveryAddress != null && _itemDescription != null
+                    ? _placeOrder
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                 ),
                 child: const Text('立即下单', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTrackingView() {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0A0E21),
+      appBar: AppBar(
+        title: const Text('配送追踪', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            // 订单信息卡片
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: <Color>[Colors.orange.withOpacity(0.3), Colors.deepOrange.withOpacity(0.2)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.orange.withOpacity(0.5), width: 1.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      const Icon(Icons.local_shipping, color: Colors.orange, size: 28),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              _getStatusText(),
+                              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            if (_orderId != null)
+                              Text(
+                                '订单号: $_orderId',
+                                style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  _buildTrackingInfoRow('取件地址', _pickupAddress ?? '', Icons.location_on),
+                  const SizedBox(height: 10),
+                  _buildTrackingInfoRow('送达地址', _deliveryAddress ?? '', Icons.flag),
+                  if (_vehicleId != null) ...[
+                    const SizedBox(height: 10),
+                    _buildTrackingInfoRow('飞行器编号', _vehicleId!, Icons.airplanemode_active),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 30),
+            // 配送进度
+            const Text('配送进度', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 15),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
+              ),
+              child: Column(
+                children: <Widget>[
+                  _buildProgressStep('订单已确认', 1),
+                  _buildProgressStep('取件中', 2),
+                  _buildProgressStep('运输中', 3),
+                  _buildProgressStep('已送达', 4),
+                ],
+              ),
+            ),
+            const SizedBox(height: 30),
+            // 实时地图（模拟）
+            Container(
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
+              ),
+              child: Stack(
+                children: <Widget>[
+                  Center(
+                    child: Icon(Icons.map, color: Colors.white.withOpacity(0.3), size: 60),
+                  ),
+                  if (_orderStatus >= 2)
+                    Center(
+                      child: AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (BuildContext context, Widget? child) {
+                          return Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.7 - _pulseController.value * 0.3),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.orange, width: 2),
+                            ),
+                            child: const Icon(Icons.airplanemode_active, color: Colors.white, size: 20),
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton(
+                onPressed: () {},
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.orange,
+                  side: const BorderSide(color: Colors.orange),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                ),
+                child: const Text('联系配送员', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -1919,7 +2648,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
               children: <Widget>[
                 Text(title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 5),
-                Text(hint, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14)),
+                Text(hint, style: TextStyle(color: hint.contains('选择') || hint.contains('输入') ? Colors.white.withOpacity(0.7) : Colors.white, fontSize: 14)),
               ],
             ),
           ),
@@ -1927,6 +2656,222 @@ class _DeliveryPageState extends State<DeliveryPage> {
         ],
       ),
     );
+  }
+
+  Widget _buildTrackingInfoRow(String label, String value, IconData icon) {
+    return Row(
+      children: <Widget>[
+        Icon(icon, color: Colors.orange, size: 20),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text('$label: $value', style: const TextStyle(color: Colors.white, fontSize: 14)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProgressStep(String label, int step) {
+    final bool isCompleted = _orderStatus >= step;
+    final bool isCurrent = _orderStatus == step;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: isCompleted ? Colors.orange : Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: isCompleted
+                ? const Icon(Icons.check, color: Colors.white, size: 20)
+                : isCurrent
+                    ? const Icon(Icons.radio_button_checked, color: Colors.orange, size: 20)
+                    : const Icon(Icons.radio_button_unchecked, color: Colors.white54, size: 20),
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isCompleted || isCurrent ? Colors.white : Colors.white.withOpacity(0.6),
+                fontSize: 16,
+                fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getStatusText() {
+    switch (_orderStatus) {
+      case 1:
+        return '订单已确认';
+      case 2:
+        return '取件中';
+      case 3:
+        return '运输中';
+      case 4:
+        return '已送达';
+      default:
+        return '待处理';
+    }
+  }
+
+  void _showLocationPicker(bool isPickup) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                isPickup ? '选择取件地址' : '选择送达地址',
+                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              ...<String>['城市之巅起降场 W1', '星海湾酒店顶楼', '科技园区起降场 E3', '市中心广场起降场'].map((String address) {
+                return ListTile(
+                  leading: Icon(Icons.location_on, color: Colors.orange),
+                  title: Text(address, style: const TextStyle(color: Colors.white)),
+                  onTap: () {
+                    setState(() {
+                      if (isPickup) {
+                        _pickupAddress = address;
+                      } else {
+                        _deliveryAddress = address;
+                      }
+                    });
+                    Navigator.pop(context);
+                  },
+                );
+              }).toList(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showItemInfoDialog() {
+    final TextEditingController descController = TextEditingController(text: _itemDescription);
+    final TextEditingController valueController = TextEditingController(text: _itemValue);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1A1A2E),
+              title: const Text('物品信息', style: TextStyle(color: Colors.white)),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    TextField(
+                      controller: descController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: '物品描述',
+                        labelStyle: TextStyle(color: Colors.white70),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white30)),
+                        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.orange)),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('重量 (kg)', style: TextStyle(color: Colors.white70)),
+                    Slider(
+                      value: _itemWeight,
+                      min: 0.1,
+                      max: 50.0,
+                      divisions: 99,
+                      label: _itemWeight.toStringAsFixed(1),
+                      activeColor: Colors.orange,
+                      onChanged: (double value) {
+                        setDialogState(() {
+                          _itemWeight = value;
+                        });
+                      },
+                    ),
+                    Text('${_itemWeight.toStringAsFixed(1)} kg', style: const TextStyle(color: Colors.white)),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: valueController,
+                      style: const TextStyle(color: Colors.white),
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: '物品价值 (¥)',
+                        labelStyle: TextStyle(color: Colors.white70),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white30)),
+                        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.orange)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('取消', style: TextStyle(color: Colors.white70)),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _itemDescription = descController.text;
+                      _itemValue = valueController.text.isEmpty ? null : valueController.text;
+                    });
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                  child: const Text('确认'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _placeOrder() {
+    setState(() {
+      _orderStatus = 1;
+      _orderId = 'DL${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+      _vehicleId = 'VT-${(1000 + (DateTime.now().millisecond % 9000)).toString()}';
+    });
+    // 模拟配送进度
+    Future<void>.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _orderStatus = 2;
+        });
+      }
+    });
+    Future<void>.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _orderStatus = 3;
+          _progress = 0.5;
+        });
+      }
+    });
+    Future<void>.delayed(const Duration(seconds: 10), () {
+      if (mounted) {
+        setState(() {
+          _orderStatus = 4;
+          _progress = 1.0;
+        });
+      }
+    });
   }
 }
 
@@ -2034,7 +2979,7 @@ class _SwarmSamplingPageState extends State<SwarmSamplingPage> with TickerProvid
       appBar: AppBar(
         title: const Row(
           children: <Widget>[
-            Icon(Icons.grid_on, color: Color(0xFF9C27B0), size: 28),
+            Icon(Icons.science, color: Color(0xFF9C27B0), size: 28),
             SizedBox(width: 10),
             Text("蜂群采样", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22)),
           ],
@@ -2674,7 +3619,7 @@ class ScenarioMarketPage extends StatelessWidget {
     <String, dynamic>{
       "title": "蜂群采样",
       "subtitle": "多机协同，精准采集",
-      "icon": Icons.grid_on,
+      "icon": Icons.science,
       "color": const Color(0xFF9C27B0),
       "category": "农业服务",
       "page": SwarmSamplingPage(),
