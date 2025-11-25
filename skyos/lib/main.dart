@@ -1003,7 +1003,32 @@ class _AirHubPageState extends State<AirHubPage> {
       }
       result[category]!.add(service);
     }
-    return result;
+    // 按照图片中的顺序排列
+    final List<String> categoryOrder = <String>[
+      '生活服务',
+      '物流配送',
+      '紧急服务',
+      '工业服务',
+      '农业服务',
+      '旅游服务',
+      '娱乐服务',
+      '平台工具',
+      '商务服务',
+      '环保服务',
+    ];
+    final Map<String, List<Map<String, dynamic>>> orderedResult = <String, List<Map<String, dynamic>>>{};
+    for (final String category in categoryOrder) {
+      if (result.containsKey(category)) {
+        orderedResult[category] = result[category]!;
+      }
+    }
+    // 添加其他未列出的分类
+    for (final String category in result.keys) {
+      if (!orderedResult.containsKey(category)) {
+        orderedResult[category] = result[category]!;
+      }
+    }
+    return orderedResult;
   }
 
   @override
@@ -1237,6 +1262,12 @@ class _AirHubPageState extends State<AirHubPage> {
         return Icons.flight;
       case '娱乐服务':
         return Icons.sports_esports;
+      case '平台工具':
+        return Icons.settings;
+      case '商务服务':
+        return Icons.business;
+      case '环保服务':
+        return Icons.eco;
       default:
         return Icons.category;
     }
