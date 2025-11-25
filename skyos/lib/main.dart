@@ -431,103 +431,47 @@ class _AirMapPageState extends State<AirMapPage> {
   Widget _buildBookingView() {
     return Stack(
       children: <Widget>[
-        // 地图背景
+        // 地图背景（鸟的图片）
         Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: <Color>[
-                Colors.blue.shade200,
-                Colors.white,
-              ],
-            ),
             image: const DecorationImage(
               image: NetworkImage('https://www.gstatic.com/flutter-onestack-prototype/genui/example_1.jpg'),
               fit: BoxFit.cover,
-              opacity: 0.5,
+              opacity: 0.6,
             ),
           ),
           child: CustomPaint(
             painter: _RoutePainter(
-              origin: const Offset(100, 200),
-              destination: const Offset(300, 400),
+              origin: const Offset(100, 150),
+              destination: const Offset(300, 500),
             ),
             child: Stack(
               children: <Widget>[
+                // 起点标记（绿色圆圈，在标准型上方）
                 Positioned(
                   left: 100,
-                  top: 200,
+                  top: 150,
                   child: Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.green,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text("起点", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                    child: const Text("起点", style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ),
+                // 终点标记（红色方块，在费用明细上方）
                 Positioned(
                   left: 300,
-                  top: 400,
+                  top: 500,
                   child: Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.red,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text("终点", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                    child: const Text("终点", style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        // 顶部路线信息卡片
-        Positioned(
-          top: 20,
-          left: 20,
-          right: 20,
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    const Icon(Icons.my_location, color: Colors.green, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(_originLocation, style: const TextStyle(color: Colors.white, fontSize: 16)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                Row(
-                  children: <Widget>[
-                    const Icon(Icons.flag, color: Colors.red, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(_destinationLocation, style: const TextStyle(color: Colors.white, fontSize: 16)),
-                    ),
-                    Row(
-                      children: <Widget>[
-                        const Icon(Icons.access_time, color: Colors.white70, size: 16),
-                        const SizedBox(width: 5),
-                        Text("$_estimatedMinutes分钟", style: const TextStyle(color: Colors.white70, fontSize: 14)),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text("¥$_totalPrice", style: const TextStyle(color: Colors.cyan, fontSize: 24, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -547,49 +491,53 @@ class _AirMapPageState extends State<AirMapPage> {
                 colors: <Color>[Colors.transparent, Colors.black.withOpacity(0.95)],
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                const Text('选择起点和终点', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 15),
-                _buildLocationInput("起点", _originLocation, Icons.my_location, Colors.green),
-                const SizedBox(height: 15),
-                _buildLocationInput("终点", _destinationLocation, Icons.flag, Colors.red),
-                const SizedBox(height: 25),
-                const Text('选择飞行器类型', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 15),
-                SizedBox(
-                  height: 120,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _aircraftTypes.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return _buildAircraftTypeCard(index);
-                    },
-                  ),
-                ),
-                const SizedBox(height: 20),
-                _buildCostBreakdown(),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 55,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _isCallSuccessful = true;
-                      });
-                    },
-                    icon: const Icon(Icons.flight_takeoff, color: Colors.white),
-                    label: const Text("呼叫飞行器", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.cyan,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Text('选择起点和终点', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 15),
+                  // 起点
+                  _buildLocationRow("起点", _originLocation, Icons.my_location, Colors.green, "$_estimatedMinutes分钟", Icons.access_time),
+                  const SizedBox(height: 10),
+                  // 终点
+                  _buildLocationRow("终点", _destinationLocation, Icons.flag, Colors.red, "¥$_totalPrice", null),
+                  const SizedBox(height: 25),
+                  const Text('选择飞行器类型', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 15),
+                  SizedBox(
+                    height: 120,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _aircraftTypes.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return _buildAircraftTypeCard(index);
+                      },
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 20),
+                  _buildCostBreakdown(),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _isCallSuccessful = true;
+                        });
+                      },
+                      icon: const Icon(Icons.flight_takeoff, color: Colors.white),
+                      label: const Text("呼叫飞行器", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.cyan,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -597,7 +545,7 @@ class _AirMapPageState extends State<AirMapPage> {
     );
   }
 
-  Widget _buildLocationInput(String label, String location, IconData icon, Color color) {
+  Widget _buildLocationRow(String label, String location, IconData icon, Color color, String? rightText, IconData? rightIcon) {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -607,18 +555,29 @@ class _AirMapPageState extends State<AirMapPage> {
       ),
       child: Row(
         children: <Widget>[
-          Icon(icon, color: color, size: 24),
+          // 图标（绿色圆圈或红色方块）
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color,
+              shape: label == "起点" ? BoxShape.circle : BoxShape.rectangle,
+              borderRadius: label == "起点" ? null : BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
           const SizedBox(width: 15),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(label, style: TextStyle(color: Colors.white70, fontSize: 12)),
-                const SizedBox(height: 4),
-                Text(location, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-              ],
-            ),
+            child: Text(location, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
           ),
+          if (rightText != null) ...[
+            if (rightIcon != null) ...[
+              Icon(rightIcon, color: Colors.white70, size: 16),
+              const SizedBox(width: 5),
+            ],
+            Text(rightText, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+            const SizedBox(width: 10),
+          ],
           const Icon(Icons.edit, color: Colors.white54, size: 20),
         ],
       ),
@@ -664,6 +623,7 @@ class _AirMapPageState extends State<AirMapPage> {
 
   Widget _buildCostBreakdown() {
     final Map<String, dynamic> selectedAircraft = _aircraftTypes[_selectedAircraftType];
+    final int typePrice = selectedAircraft["typePrice"] as int;
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -676,13 +636,13 @@ class _AirMapPageState extends State<AirMapPage> {
           const SizedBox(height: 10),
           _buildCostRow("时长费用", "¥$_durationFee"),
           const SizedBox(height: 10),
-          _buildCostRow("车型费用", "¥${selectedAircraft["typePrice"]}"),
+          _buildCostRow("车型费用", "¥$typePrice"),
           const Divider(color: Colors.white24, height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               const Text("总计", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-              Text("¥$_totalPrice", style: const TextStyle(color: Colors.cyan, fontSize: 24, fontWeight: FontWeight.bold)),
+              Text("¥$_totalPrice", style: const TextStyle(color: Colors.cyan, fontSize: 22, fontWeight: FontWeight.bold)),
             ],
           ),
         ],
@@ -1537,12 +1497,17 @@ class WeddingPage extends StatefulWidget {
 }
 
 class _WeddingPageState extends State<WeddingPage> {
+  String _selectedDate = "2026年5月20日";
+  String _selectedTime = "晚上8:00 (最佳日落时分)";
+  String _startLocation = "城市之巅起降场 W1";
+  String _endLocation = "星海湾酒店顶楼";
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E21),
+      backgroundColor: const Color(0xFF1A0E2E), // 深紫色背景
       appBar: AppBar(
-        title: const Text('空中仪式', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('空中仪式定制', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -1555,65 +1520,108 @@ class _WeddingPageState extends State<WeddingPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: <Color>[Colors.pink.withOpacity(0.3), Colors.purple.withOpacity(0.2)],
-                ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.pink.withOpacity(0.5), width: 1.5),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text('定制您的空中婚礼', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 10),
-                  Text('在云端见证最美好的时刻', style: TextStyle(color: Colors.white70, fontSize: 16)),
-                ],
-              ),
+            // 标题区域
+            const Text('定制您的天空时刻', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            const Text('选择您的路线、座舱和专属服务', style: TextStyle(color: Colors.yellow, fontSize: 16)),
+            const SizedBox(height: 30),
+            // 服务选择卡片
+            _buildServiceCard(
+              '云端求婚舱',
+              '全景天幕,定制灯光秀',
+              Icons.castle,
+              Colors.yellow,
+              () {},
+            ),
+            const SizedBox(height: 15),
+            _buildServiceCard(
+              '空中婚礼车队',
+              '多架次编队飞行,全程录像',
+              Icons.flight,
+              Colors.yellow,
+              () {},
             ),
             const SizedBox(height: 30),
-            _buildServiceCard('服务选择', '选择您需要的服务', Icons.checklist, () {}),
+            // 时间与日期
+            const Text('时间与日期', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 15),
-            _buildServiceCard('日期时间', '选择婚礼日期和时间', Icons.calendar_today, () {}),
+            _buildDateTimeCard(
+              Icons.calendar_today,
+              Colors.blue,
+              '选择日期',
+              _selectedDate,
+              () {
+                // 日期选择
+              },
+            ),
             const SizedBox(height: 15),
-            _buildServiceCard('路线规划', '规划飞行路线', Icons.route, () {}),
+            _buildDateTimeCard(
+              Icons.access_time,
+              Colors.red,
+              '选择时间',
+              _selectedTime,
+              () {
+                // 时间选择
+              },
+            ),
             const SizedBox(height: 30),
+            // 起降点及路线
+            const Text('起降点及路线', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 15),
+            _buildLocationCard(
+              Icons.flight_takeoff,
+              Colors.green,
+              '起点起降场',
+              _startLocation,
+              () {
+                // 选择起点
+              },
+            ),
+            const SizedBox(height: 15),
+            _buildLocationCard(
+              Icons.flight_land,
+              Colors.red,
+              '终点起降场',
+              _endLocation,
+              () {
+                // 选择终点
+              },
+            ),
+            const SizedBox(height: 40),
+            // 确认按钮
             SizedBox(
               width: double.infinity,
-              height: 50,
+              height: 55,
               child: ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pink,
-                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.yellow,
+                  foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                 ),
-                child: const Text('确认预订', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: const Text('确认并提交定制需求 (¥ 88,888起)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
             ),
+            const SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildServiceCard(String title, String subtitle, IconData icon, VoidCallback onTap) {
+  Widget _buildServiceCard(String title, String subtitle, IconData icon, Color iconColor, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.white.withOpacity(0.2)),
+          color: Colors.purple.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
         ),
         child: Row(
           children: <Widget>[
-            Icon(icon, color: Colors.pink, size: 32),
+            Icon(icon, color: iconColor, size: 32),
             const SizedBox(width: 15),
             Expanded(
               child: Column(
@@ -1621,11 +1629,73 @@ class _WeddingPageState extends State<WeddingPage> {
                 children: <Widget>[
                   Text(title, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 5),
-                  Text(subtitle, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14)),
+                  Text(subtitle, style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14)),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateTimeCard(IconData icon, Color iconColor, String label, String value, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.purple.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+        ),
+        child: Row(
+          children: <Widget>[
+            Icon(icon, color: iconColor, size: 24),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(label, style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14)),
+                  const SizedBox(height: 5),
+                  Text(value, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationCard(IconData icon, Color iconColor, String label, String value, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.purple.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+        ),
+        child: Row(
+          children: <Widget>[
+            Icon(icon, color: iconColor, size: 24),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(label, style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14)),
+                  const SizedBox(height: 5),
+                  Text(value, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
           ],
         ),
       ),
